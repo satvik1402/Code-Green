@@ -1,0 +1,111 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.sqlite3
+instance/
+
+# Environment and configuration files
+.env
+.env.*
+!.env.template
+!.env.example
+config.py
+
+# Local development
+instance/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.sqlite3
+*.sqlite
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Local development
+.DS_Store
+Thumbs.db
+
+# Project specific
+CodePlagueDetector/instance/
+instance/
+
+# Local development overrides
+local_settings.py
+settings_local.py
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Local development
+.DS_Store
+Thumbs.db
+
+# Project specific
+CodePlagueDetector/instance/
+instance/
