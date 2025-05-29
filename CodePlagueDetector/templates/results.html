@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Analysis Results - DSA Detector</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <nav class="navbar navbar-expand-lg mb-4">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                    <i class="fas fa-search-code me-2"></i>
+                    DSA Plagiarism Detector
+                </a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Analyze Another Code
+                </a>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Results Summary -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Plagiarism Analysis Results
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Problem: {{ problem.title if problem else 'Unknown' }}</h5>
+                                    <p class="text-muted">{{ problem.difficulty if problem else '' }} Level DSA Problem</p>
+                                    
+                                    <!-- Overall Score -->
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span>Originality Score:</span>
+                                            {% set originality = 100 - (submission.semantic_similarity * 100)|int if submission.semantic_similarity else 100 %}
+                                            <span class="badge bg-{{ 'success' if originality > 70 else 'warning' if originality > 40 else 'danger' }} fs-6">
+                                                {{ originality }}%
+                                            </span>
+                                        </div>
+                                        <div class="progress" style="height: 8px;">
+                                            {% set originality = 100 - (submission.semantic_similarity * 100)|int if submission.semantic_similarity else 100 %}
+                                            <div class="progress-bar {% if originality > 70 %}bg-success{% elif originality > 40 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ originality }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="chart-container">
+                                        <canvas id="plagiarismChart" width="300" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Case Results -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-vial me-2"></i>
+                                Test Case Validation
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if submission.test_passed %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>All test cases passed!</strong> Your code correctly solves the problem.
+                                </div>
+                                {% if submission.fast_typing_detected %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-bolt me-2"></i>
+                                        <strong>Fast typing detected!</strong> Your code was entered unusually quickly. This has been flagged for review.
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-times-circle me-2"></i>
+                                    <strong>Test cases failed.</strong> Your code may not correctly solve the problem or might be for a different problem.
+                                    {% if submission.test_details %}
+                                        <p class="mt-2">{{ submission.test_details }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Note:</strong> Plagiarism detection is skipped for submissions that don't pass all test cases.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if submission.test_passed %}
+            <!-- Detection Results Grid -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 {{ 'border-danger' if submission.exact_match else 'border-success' }}">
+                        <div class="card-body text-center">
+                            <i class="fas fa-equals fa-2x {{ 'text-danger' if submission.exact_match else 'text-success' }} mb-3"></i>
+                            <h6>Exact Match</h6>
+                            <span class="badge bg-{{ 'danger' if submission.exact_match else 'success' }}">
+                                {{ 'DETECTED' if submission.exact_match else 'CLEAR' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 {{ 'border-info' if submission.structural_similarity else 'border-success' }}">
+                        <div class="card-body text-center">
+                            <i class="fas fa-project-diagram fa-2x {{ 'text-info' if submission.structural_similarity else 'text-success' }} mb-3"></i>
+                            <h6>Algorithm/Structure Similarity</h6>
+                            <span class="badge bg-{{ 'info' if submission.structural_similarity else 'success' }}">
+                                {{ 'DETECTED' if submission.structural_similarity else 'CLEAR' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 {{ 'border-warning' if submission.comment_similarity else 'border-success' }}">
+                        <div class="card-body text-center">
+                            <i class="fas fa-comments fa-2x {{ 'text-warning' if submission.comment_similarity else 'text-success' }} mb-3"></i>
+                            <h6>Comment Similarity</h6>
+                            <span class="badge bg-{{ 'warning' if submission.comment_similarity else 'success' }}">
+                                {{ 'DETECTED' if submission.comment_similarity else 'CLEAR' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card h-100 {{ 'border-warning' if submission.fast_typing_detected else 'border-success' }}">
+                        <div class="card-body text-center">
+                            <i class="fas fa-bolt fa-2x {{ 'text-warning' if submission.fast_typing_detected else 'text-success' }} mb-3"></i>
+                            <h6>Fast Typing Detection</h6>
+                            <span class="badge bg-{{ 'warning' if submission.fast_typing_detected else 'success' }}">
+                                {{ 'FLAGGED' if submission.fast_typing_detected else 'NORMAL' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Semantic Similarity Card -->
+            {% if submission.test_passed %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card h-100 {{ 'border-primary' if submission.semantic_similarity > 0.8 else 'border-success' }}">
+                        <div class="card-body text-center">
+                            <i class="fas fa-brain fa-2x {{ 'text-primary' if submission.semantic_similarity > 0.8 else 'text-success' }} mb-3"></i>
+                            <h6>Semantic Similarity (AI-Powered Analysis)</h6>
+                            <span class="badge bg-{{ 'primary' if submission.semantic_similarity > 0.8 else 'success' }}">
+                                {{ (submission.semantic_similarity * 100) | int }}%
+                            </span>
+                            <p class="mt-2 small">This uses advanced AI to detect conceptual similarities even if the code structure is different.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            </div>
+
+            <!-- Detailed Feedback -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-comments me-2"></i>
+                                Detailed Feedback
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if submission.test_passed %}
+                                {% if feedback %}
+                                    <div class="feedback-container">
+                                        {% for item in feedback %}
+                                            {% if item is string %}
+                                                <div class="alert alert-info mb-2">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    {{ item }}
+                                                </div>
+                                            {% else %}
+                                                <div class="alert {% if item.type == 'error' or item.severity == 'high' %}alert-danger
+                                                            {% elif item.type == 'warning' or item.severity == 'medium' %}alert-warning
+                                                            {% else %}alert-info{% endif %} mb-2">
+                                                    {% if item.type == 'error' %}
+                                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                                    {% elif item.type == 'warning' %}
+                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-info-circle me-2"></i>
+                                                    {% endif %}
+                                                    {{ item.message }}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        No significant issues detected. Your solution appears to be original.
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Test cases failed.</strong> Fix your code to pass all test cases before we perform plagiarism detection.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submitted Code Display -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-file-code me-2"></i>
+                                Submitted Code
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <pre><code class="language-python">{{ submission.code }}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Initialize Chart -->
+    {% if submission.test_passed %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Fetch chart data and render pie chart
+                const ctx = document.getElementById('plagiarismChart').getContext('2d');
+                
+                // Server-side computed values
+                const originalityValue = {{ 100 - (submission.semantic_similarity * 100)|int if submission.semantic_similarity else 100 }};
+                const plagiarismValue = {{ (submission.semantic_similarity * 100)|int if submission.semantic_similarity else 0 }};
+                
+                const chartData = {
+                    labels: ['Original', 'Plagiarized'],
+                    datasets: [{
+                        data: [originalityValue, plagiarismValue],
+                        backgroundColor: [
+                            '#28a745',  // Green for original
+                            '#dc3545'   // Red for plagiarized
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#333'
+                    }]
+                };
+
+                const chart = new Chart(ctx, {
+                    type: 'pie',
+                    data: chartData,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#fff',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error rendering chart:', error);
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
