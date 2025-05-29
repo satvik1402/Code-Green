@@ -26,7 +26,24 @@ A sophisticated plagiarism detection system specifically designed for Data Struc
   - Visual charts and metrics
   - Side-by-side code comparison
   - Suspicious code highlighting
-
+## ✨ Tech Stack
+-Backend
+  -Python (3.8+)
+  -Flask - Web framework
+  -SQLAlchemy - ORM for database operations
+-Core Technologies
+  Abstract Syntax Trees (AST) - For code structure analysis
+  CodeBERT - For semantic code similarity
+  Regex Pattern Matching - For algorithm pattern detection
+-Database
+  SQLite - Default database (development)
+  SQLAlchemy ORM - Database abstraction layer
+-Frontend
+  HTML5 - Structure
+  CSS3 - Styling
+  JavaScript - Interactivity
+  Bootstrap 5 - Responsive design
+  
 ## 🚀 Getting Started
 
 ### Prerequisites
